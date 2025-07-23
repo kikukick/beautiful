@@ -33,15 +33,15 @@
     async function main() {
       pyodide = await loadPyodide();
       const vocabCode = await fetch("vocab.py").then(res => res.text());
-      await pyodide.runPythonAsync(vocabCode);
-
+      pyodide.FS.writeFile("/vocab.py", vocabCode);
       const genCode = await fetch("generate.py").then(res => res.text());
-      await pyodide.runPythonAsync(genCode);
+      pyodide.FS.writeFile("/generate.py", genCode);
+      await pyodide.runPythonAsync("import vocab\nimport generate");
     }
 
     async function generate() {
       try {
-        const result = await pyodide.runPythonAsync(`
+        const result = await pyodide.runPythonAsync(`from generate import generate_sentence\nprint(generate_sentence())`);
 sentence = generate_sentence(load_vocab())
 sentence
         `);

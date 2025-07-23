@@ -1,33 +1,29 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>詩文ジェネレーター</title>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
   <style>
     body {
       font-family: sans-serif;
+      padding: 2em;
       max-width: 600px;
-      margin: 2em auto;
-      padding: 1em;
-      line-height: 1.6;
+      margin: auto;
     }
     button {
       padding: 10px 20px;
-      font-size: 1rem;
-      margin-top: 1em;
+      font-size: 16px;
     }
     #output {
-      margin-top: 2em;
+      margin-top: 20px;
       font-size: 1.2rem;
-      font-weight: bold;
       white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
-  <h1>詩文ジェネレーター(OSS)</h1>
-  <p>生成された短い詩文が表示されます。</p>
+  <h1>詩文ジェネレーター</h1>
   <button onclick="generate()">生成する</button>
   <div id="output">▶ ここに生成結果が表示されます</div>
 
@@ -36,17 +32,24 @@
 
     async function main() {
       pyodide = await loadPyodide();
-
       const vocabCode = await fetch("vocab.py").then(res => res.text());
-      const generateCode = await fetch("generate.py").then(res => res.text());
-
       await pyodide.runPythonAsync(vocabCode);
-      await pyodide.runPythonAsync(generateCode);
+
+      const genCode = await fetch("generate.py").then(res => res.text());
+      await pyodide.runPythonAsync(genCode);
     }
 
     async function generate() {
-      const result = await pyodide.runPythonAsync("generate_sentence(load_vocab())");
-      document.getElementById("output").innerText = "▶ " + result;
+      try {
+        const result = await pyodide.runPythonAsync(`
+sentence = generate_sentence(load_vocab())
+sentence
+        `);
+        document.getElementById("output").innerText = "▶ " + result;
+      } catch (err) {
+        document.getElementById("output").innerText = "❌ エラー: " + err;
+        console.error(err);
+      }
     }
 
     main();
